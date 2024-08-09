@@ -1,0 +1,63 @@
+Show Recently View Products on shopify product page any theme.
+<script>
+  function setRecentlyViewedPdp() {
+    const pdpData = {
+      productTitle: "{{ product.title }}",
+      productImg: "{{ product.featured_image | img_url: 'original' }}",
+      productPrice: "{{ product.price | money | remove_first: '' }}",
+      productUrl: "{{ product.url }}"
+    };
+
+    const existingData = JSON.parse(localStorage.getItem('recently_viewedPDP')) || [];
+
+    const isProductInArray = existingData.some(item => item.productTitle === pdpData.productTitle);
+
+    if (!isProductInArray) {
+      existingData.push(pdpData);
+
+      if (existingData.length > 4) {
+        existingData.shift();
+      }
+
+      localStorage.setItem('recently_viewedPDP', JSON.stringify(existingData));
+    }
+  }
+
+  setRecentlyViewedPdp();
+
+  function getRecentPdp() {
+    const pdpData = JSON.parse(localStorage.getItem('recently_viewedPDP')) || [];
+    const recentViewHtml = pdpData.map(item => `
+      <div class="grid__item grid-product small--one-half medium-up--one-quarter aos-animate aos-init" data-aos="row-of-4">
+        <div class="grid-product__content">
+          <a href="${item.productUrl}" class="grid-product__link">
+            <div class="grid-product__image-mask">
+              <div class="image-wrap loaded" style="height: 0px; padding-bottom: 100%;">
+                <image-element data-aos="image-fade-in" data-aos-offset="150" class="aos-init aos-animate">
+                  <img class="grid-product__image image-element" width="" height="" src="${item.productImg}" loading="lazy" alt="${item.productTitle}">
+                </image-element>
+              </div>
+            </div>
+            <div class="grid-product__meta">
+              <div class="grid-product__title">${item.productTitle}</div>
+              <div class="grid-product__price">${item.productPrice}</div>
+              <div class="shop_now_button"><a href="${item.productUrl}" class="product__link underline uppercase" target="_blank">Shop Now</a></div>
+              
+            </div>
+          </a>
+        </div>
+      </div>
+    `);
+
+    const recentBlock = recentViewHtml.join('');
+    const contentBlocks = document.querySelectorAll('.js-recentPdpBlock');
+
+    contentBlocks.forEach(function (block) {
+      block.innerHTML = recentBlock;
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    getRecentPdp();
+  });
+</script>
